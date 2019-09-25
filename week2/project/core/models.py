@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import MainUser
+from users.models import MainUser
 from utils.constants import BLOCK_TYPES, NEW
 
 class Project(models.Model):
