@@ -44,7 +44,7 @@ class Task(models.Model):
     creator = models.ForeignKey(MainUser, on_delete=models.SET_NULL, related_name='creator_tasks', null=True)
     executor = models.ForeignKey(MainUser, on_delete=models.CASCADE, related_name='executor_tasks', null=True)
     block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name='tasks')
-    order = models.IntegerField(unique=True, null=True)
+    order = models.IntegerField(unique=True)
 
     class Meta:
         verbose_name = "Task"

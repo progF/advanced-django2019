@@ -12,11 +12,20 @@ from .models import (
 class ProjectSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=50)
     description = serializers.CharField(max_length=2000)
-    creator = MainUserSerializer(read_only=True)
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     
     class Meta:
         model = Project
-        fields = ('name', 'description', 'creator')
+        fields = ('name', 'creator')
+
+    def validate_name(self, value):
+        if len(value) >= 50:
+            raise serializers.ValidationError('Name field must be max len: 50')
+        return value
+
+class ProjectFullSerializer(ProjectSerializer):
+    class Meta(ProjectSerializer.Meta):
+        fields = ProjectSerializer.Meta.fields + ('description',)
 
 
 class ProjectMemberSerializer(serializers.ModelSerializer):
@@ -34,24 +43,27 @@ class BlockSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    creator = MainUserSerializer(read_only=True)
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     executor = MainUserSerializer(required=False)
     block = BlockSerializer(read_only=True)
     order = serializers.IntegerField(read_only=True)
     class Meta:
         model = Task
         fields = ('__all__')
+        optional_fields = ['executor',]
+
 
 class TaskDocumentSerializer(serializers.Serializer):
-    creator = MainUserSerializer(read_only=True)
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     task = TaskSerializer(read_only=True)
     class Meta:
         model = TaskDocument
         fields = ('__all__')
 
 class TaskCommentSerializer(serializers.Serializer):
-    creator = MainUserSerializer()
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     task = TaskSerializer()
     class Meta:
         model = TaskComment
         fields = ('__all__')
+

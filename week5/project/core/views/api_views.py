@@ -32,7 +32,7 @@ class ProjectDetailAPIView(APIView):
     
     http_method_names = ['get', 'put', 'delete']
     permission_classes = (IsAuthenticated,)
-
+    
     def get(self, request, pk):
         project = get_object_or_404(Project, id=pk)
         if project.creator == request.user:
