@@ -10,8 +10,4 @@ from rest_framework import mixins
 
 
 class RegisterViewSet(mixins.CreateModelMixin,viewsets.GenericViewSet):
-    
     serializer_class = MainUserSerializer
-    
-    def perform_create(self, serializer):
-        return serializer.create(validated_data = self.request.data)
