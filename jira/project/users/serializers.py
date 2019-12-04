@@ -2,8 +2,7 @@ import logging
 from rest_framework import serializers
 from users.models import MainUser, Profile
 
-logger = logging.getLogger('__name__')
-print(logger)
+logger = logging.getLogger(__name__)
 
 class MainUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -23,12 +22,12 @@ class MainUserSerializer(serializers.ModelSerializer):
 
     def validate_password(self,value):
         if len(value)<8:
-            logging.error("PASSWORD IS NOT ALLOWABLE")
             raise serializers.ValidationError('Password has to contain more than 8 characters.')
         return value
 
     def validate_username(self,value):
-        if MainUser.objects.filter(username=value.lower()):
+        value = value.lower()
+        if MainUser.objects.filter(username=value):
             raise serializers.ValidationError('This username already exists.')
         return value
 

@@ -26,7 +26,8 @@ class MainUserSerializer(serializers.ModelSerializer):
         return value
 
     def validate_username(self,value):
-        if MainUser.objects.filter(username=value.lower()):
+        value = value.lower()
+        if MainUser.objects.filter(username=value):
             raise serializers.ValidationError('This username already exists.')
         return value
 

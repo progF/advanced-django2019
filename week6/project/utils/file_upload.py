@@ -10,6 +10,10 @@ def avatar_delete_path(image):
     shutil.rmtree(path)
 
 def document_path(instance, filename):
-    project = instance.block.project.name
-    block = instance.block.name
+    project = instance.task.block.project.name
+    block = instance.task.block.name
     return f'projects/{project}/{block}/{filename}'
+
+def delete_task_path(document):
+    path = os.path.abspath(os.path.join(document.path, '..'))
+    shutil.rmtree(path)
