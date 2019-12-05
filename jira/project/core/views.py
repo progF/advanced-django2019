@@ -99,7 +99,16 @@ class TaskDetailAPIView(APIView):
 
     def delete(self, request, pk, format=None):
         task = self.get_object(pk)
+        orders = []
+        old_order = task.order
+        tasks = task.block.tasks.all().order_by("order")
+        for t in tasks:
+            orders.append(t)
+        orders.remove(task)
         task.delete()
+        for t in orders:
+            t.order = orders.index(t)+1
+            t.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
