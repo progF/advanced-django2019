@@ -134,6 +134,11 @@ class UpdateTaskSerializer(serializers.ModelSerializer):
         instance.save()
         return instance 
 
+    def validate_order(self, value):
+        if value < 0:
+            raise serializers.ValidationError('Bad order!')
+        return value
+
 # class TaskDocumentSerializer(serializers.Serializer):
 #     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
 #     task = TaskSerializer(read_only=True)
@@ -143,15 +148,32 @@ class UpdateTaskSerializer(serializers.ModelSerializer):
 
 
 class TaskDocumentSerializer(serializers.Serializer):
-    class Meta:
-        fields = '__all__'
+    creator_id = serializers.IntegerField(required=False)
+    task_id = serializers.IntegerField(required=False)
+    document = serializers.FileField()
 
     def create(self, validated_data):
-        document = TaskDocumentSerializer.objects.create(**validated_data)
+        document = TaskDocument.objects.create(**validated_data)
         return document
 
     def update(self, instance, validated_data):
         instance.document = validated_data.get('document', instance.document)
+        instance.task = validated_data.get('task', instance.task)
+        instance.save()
+        return instance
+
+
+class TaskCommentSerializer(serializers.Serializer):
+    creator_id = serializers.IntegerField(required=False)
+    task_id = serializers.IntegerField(required=False)
+    body = serializers.CharField(max_length=500)
+
+    def create(self, validated_data):
+        comment = TaskComment.objects.create(**validated_data)
+        return comment
+
+    def update(self, instance, validated_data):
+        instance.body = validated_data.get('body', instance.body)
         instance.task = validated_data.get('task', instance.task)
         instance.save()
         return instance
@@ -166,16 +188,16 @@ class TaskDocumentSerializer(serializers.Serializer):
     #         raise serializers.ValidationError('Status options: [1, 2, 3]')
     #     return value
 
-class TaskDocumentSerializer(serializers.Serializer):
-    creator = MainUserSerializer(read_only=True)
-    task = TaskSerializer(read_only=True)
-    class Meta:
-        model = TaskDocument
-        fields = ('__all__')
+# class TaskDocumentSerializer(serializers.Serializer):
+#     creator = MainUserSerializer(read_only=True)
+#     task = TaskSerializer(read_only=True)
+#     class Meta:
+#         model = TaskDocument
+#         fields = ('__all__')
 
-class TaskCommentSerializer(serializers.Serializer):
-    creator = MainUserSerializer()
-    task = TaskSerializer()
-    class Meta:
-        model = TaskComment
-        fields = ('__all__')
+# class TaskCommentSerializer(serializers.Serializer):
+#     creator = MainUserSerializer()
+#     task = TaskSerializer()
+#     class Meta:
+#         model = TaskComment
+#         fields = ('__all__')

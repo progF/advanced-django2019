@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import status
-from core.models import Project, Task, Block
+from core.models import Project, Task, Block, TaskDocument, TaskComment
 from users.models import MainUser
 from core.serializers import (
     ProjectSerializer,
@@ -25,6 +25,7 @@ from rest_framework.decorators import (api_view,
 from utils.constants import NEW
 from core.permissions import UserPermissions
 from django.http import Http404
+from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 
 
 class ProjectViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,viewsets.GenericViewSet):
@@ -112,29 +113,36 @@ class TaskDetailAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class DocumentListViewSet(mixins.RetrieveModelMixin,
+class DocumentListViewSet(mixins.CreateModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
 
     serializer_class = TaskDocumentSerializer
-
+    parser_classes = (MultiPartParser, FormParser, JSONParser,)
+    permission_classes = (IsAuthenticatedOrReadOnly, UserPermissions, )
     def get_queryset(self):
-        documents = Task.objects.get(id=self.request.query_params['task']).documents
+        task = Task.objects.get(id=self.request.query_params['task'])
+        documents = TaskDocument.objects.filter(task=task)
         return documents
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user, task=Task.objects.get(id=self.request.query_params['task']))
+        print(self.request.FILES)
+        serializer.save(creator=self.request.user, task=Task.objects.get(id=self.request.query_params['task']))
 
 
-class CommentListViewSet(mixins.RetrieveModelMixin,
+class CommentListViewSet(mixins.CreateModelMixin,
+                         mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
 
     serializer_class = TaskCommentSerializer
+    parser_classes = (MultiPartParser, FormParser, JSONParser,)
+    permission_classes = (IsAuthenticatedOrReadOnly, UserPermissions, )
 
     def get_queryset(self):
-        comments = Task.objects.get(id=self.request.query_params['task']).comments
+        task = Task.objects.get(id=self.request.query_params['task'])
+        comments = TaskComment.objects.filter(task=task)
         return comments
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user, task=Task.objects.get(id=self.request.query_params['task']))
+        serializer.save(creator=self.request.user, task=Task.objects.get(id=self.request.query_params['task']))
