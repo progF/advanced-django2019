@@ -94,20 +94,46 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UpdateTaskSerializer(serializers.Serializer):
-    
+class UpdateTaskSerializer(serializers.ModelSerializer):
+    # creator = MainUserSerializer(required=False)
+    # executor = MainUserSerializer(required=False)
+    # block = BlockSerializer(required=False)
+
     class Meta:
+        model = Task
         fields = '__all__'
+
+
+    def get_fields(self):
+        fields = super(UpdateTaskSerializer, self).get_fields()
+        for field in fields.values():
+            field.required = False
+        return fields
     
 
     def update(self, instance, validated_data):
+        orders = []
         instance.name = validated_data.get('name', instance.name)
         instance.description = validated_data.get('description', instance.description)
         instance.creator = validated_data.get('creator', instance.creator)
         instance.executor = validated_data.get('executor', instance.executor)
-        instance.block = validated_data.get('block', instance.block)
-        instance.order = validated_data.get('order', instance.order)
+        if instance.block != validated_data.get('block'):
+            instance.block = validated_data.get('block', instance.block)
+            instance.order = instance.block.tasks.count()+1
+        else:
+            if validated_data.get('order'):
+                old_order = instance.order
+                instance.order = validated_data.get('order', instance.order)
+                tasks = instance.block.tasks.all().order_by("order")
+                for task in tasks:
+                    orders.append(task)
+                orders.insert(instance.order-1, orders.pop(old_order-1))
+                for task in orders:
+                    task.order = orders.index(task)+1
+                    task.save()
         instance.save()
+        # MyModel.objects.filter(pk=some_value).update(field1='some value')
+        print(orders)
         return instance 
 
 # class TaskDocumentSerializer(serializers.Serializer):

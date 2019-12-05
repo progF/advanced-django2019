@@ -31,11 +31,12 @@ class Task(models.Model):
     creator = models.ForeignKey(MainUser, on_delete=models.SET_NULL, related_name='creator_tasks', null=True)
     executor = models.ForeignKey(MainUser, on_delete=models.SET_NULL, related_name='executor_tasks', null=True)
     block = models.ForeignKey(Block, on_delete=models.CASCADE, related_name='tasks')
-    order = models.IntegerField(unique=True)
+    order = models.IntegerField()
 
     class Meta:
         verbose_name = "Task"
         verbose_name_plural = "Tasks"
+        # unique_together = ('block', 'order',)
 
     def __str__(self):
         return self.name
