@@ -7,6 +7,8 @@ from users.models import MainUser
 from django.shortcuts import get_object_or_404
 
 
+logger = logging.getLogger(__name__)
+
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -29,7 +31,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 class TaskShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ('name', 'order')
+        fields = ('id', 'name', 'order')
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -66,45 +68,47 @@ class TaskShortSerializer(serializers.Serializer):
 
 
 
-class CreateTaskSerializer(serializers.Serializer):
+class CreateTaskSerializer(serializers.ModelSerializer):
+    block = BlockSerializer(required=False)
+    order = serializers.IntegerField(required=False)
 
     class Meta:
         model = Task
-        fields = ('name', 'description', 'executor')
+        fields = ('name', 'description', 'block', 'order', 'creator')
 
-    def create(self, validated_data):
-        creator = validated_data.get('creator')
-        block = validated_data.get('block')
-        order = validated_data.get('order')
-        name = validated_data.get('name')
-        description = validated_data.get('description')
-        executor = get_object_or_404(MainUser, id=validated_data.get('executor'))
-        task = Task.objects.create(
-            name=name, description=description, executor=executor, block=block, order=order
-        )
-        return task
+    # def create(self, validated_data):
+    #     creator = validated_data.get('creator')
+    #     block = validated_data.get('block')
+    #     order = validated_data.get('order')
+    #     name = validated_data.get('name')
+    #     description = validated_data.get('description')
+    #     task = Task.objects.create(
+    #         name=name, description=description, block=block, order=order
+    #     )
+    #     return task
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    order = serializers.IntegerField(required=False)
-    block = BlockSerializer(required=False)
-    executor = MainUserSerializer()
     class Meta:
         model = Task
         fields = '__all__'
 
 
-    def validate_executor(self, value):
-        try:
-            return MainUser.objects.get(id=value)
-        except Exception:
-            raise serializers.ValidationError("Not correct executor")
-    # def create(self,validated_data):
-    #     print(validated_data)
-    #     print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    #     task = Task.objects.create(**validated_data)
-    #     return task
+class UpdateTaskSerializer(serializers.Serializer):
+    
+    class Meta:
+        fields = '__all__'
+    
 
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.creator = validated_data.get('creator', instance.creator)
+        instance.executor = validated_data.get('executor', instance.executor)
+        instance.block = validated_data.get('block', instance.block)
+        instance.order = validated_data.get('order', instance.order)
+        instance.save()
+        return instance 
 
 # class TaskDocumentSerializer(serializers.Serializer):
 #     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())

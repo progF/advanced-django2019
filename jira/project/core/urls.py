@@ -3,7 +3,8 @@ from core.views import (
     ProjectViewSet,
     ProjectDetailViewSet,
     get_blocks_by_project,
-    create_new_task
+    create_new_task,
+    TaskDetailAPIView
 )
 from rest_framework import routers
 
@@ -15,6 +16,7 @@ urlpatterns = [
     }), name='detailed-project'),
     path('project/', get_blocks_by_project),
     path('tasks/', create_new_task),
+    path('tasks/<int:pk>/', TaskDetailAPIView.as_view()),
 ]
 # router = routers.DefaultRouter()
 # router.register('projects', ProjectViewSet, base_name='core')
