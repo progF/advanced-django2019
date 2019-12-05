@@ -148,6 +148,7 @@ class UpdateTaskSerializer(serializers.ModelSerializer):
 
 
 class TaskDocumentSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
     creator_id = serializers.IntegerField(required=False)
     task_id = serializers.IntegerField(required=False)
     document = serializers.FileField()
@@ -164,6 +165,7 @@ class TaskDocumentSerializer(serializers.Serializer):
 
 
 class TaskCommentSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
     creator_id = serializers.IntegerField(required=False)
     task_id = serializers.IntegerField(required=False)
     body = serializers.CharField(max_length=500)

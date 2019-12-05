@@ -23,7 +23,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import (api_view,
                                        permission_classes)
 from utils.constants import NEW
-from core.permissions import UserPermissions
+from core.permissions import UserPermissions, DocumentPermissions
 from django.http import Http404
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 
@@ -115,6 +115,8 @@ class TaskDetailAPIView(APIView):
 
 class DocumentListViewSet(mixins.CreateModelMixin,
                          mixins.ListModelMixin,
+                         mixins.RetrieveModelMixin,
+                         mixins.DestroyModelMixin,
                          viewsets.GenericViewSet):
 
     serializer_class = TaskDocumentSerializer
@@ -146,3 +148,20 @@ class CommentListViewSet(mixins.CreateModelMixin,
 
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user, task=Task.objects.get(id=self.request.query_params['task']))
+
+
+
+class DocumentDetailViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticated,DocumentPermissions,)
+    serializer_class = TaskDocumentSerializer
+    
+    def get_queryset(self):
+        return TaskDocument.objects.all()
+
+
+class CommentDetailViewSet(mixins.RetrieveModelMixin, mixins.DestroyModelMixin, mixins.UpdateModelMixin,  viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TaskCommentSerializer
+    
+    def get_queryset(self):
+        return TaskComment.objects.filter(creator=self.request.user)
